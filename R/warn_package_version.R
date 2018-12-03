@@ -17,12 +17,14 @@ warn_package_version <- function(level = 2) {
   count_lib_version <- lib_version %>%
     dplyr::count(!!rlang::sym("compare")) %>%
     dplyr::arrange(!!rlang::sym("compare")) %>%
-    dplyr::mutate_at("n", cumsum) %>%
     dplyr::mutate(msg = paste(core_msg(!!rlang::sym("n")), dplyr::case_when(
       compare == -1 ~  "with a version lower in dev_mode()",
-      compare == 0  ~ "with a version lower or equal in dev_mode()",
+      compare == 0  ~ "with a version equal in dev_mode()",
       compare == 1  ~ "with a version higher in dev_mode()"
     ))) %>%
     dplyr::filter(compare <= (level + 1))
   purrr::walk(count_lib_version[["msg"]], warning, call. = FALSE)
+  if (nrow(count_lib_version) > 0) {
+    message("For more details, run cdpu::check_version()")
+  }
 }
